@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Sandwich-Residuals: parameter-efficient test-time adaptation of world models.">
+  <meta name="theme-color" content="#101214">
+  <title>Sandwich-Residuals</title>
+  <style>
+    :root {
+      --text: #eceff1;
+      --muted: #9da5ab;
+      --line: #2d3338;
+      --soft: #171a1d;
+      --accent: #ef8a50;
+      --accent-soft: #2a201a;
+      --page: 980px;
+      --reading: 760px;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --serif: Georgia, "Times New Roman", serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+    body {
+      margin: 0;
+      background: #101214;
+      color: var(--text);
+      font: 16px/1.65 var(--sans);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    img { display: block; max-width: 100%; }
+    .page { width: min(var(--page), calc(100% - 40px)); margin: 0 auto; }
+    .reading { width: min(var(--reading), 100%); margin-inline: auto; }
+
+    .paper-header { padding: 68px 0 44px; text-align: center; }
+    h1 {
+      max-width: 850px;
+      margin: 0 auto;
+      font-family: var(--serif);
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 500;
+      letter-spacing: -.025em;
+      line-height: 1.16;
+    }
+    .authors { margin: 24px 0 0; font-size: 1.05rem; }
+    .authors strong { font-weight: 600; }
+
+    .figure.teaser { width: 90%; margin: 8px auto 28px; }
+    .figure { margin: 0; }
+    .figure img {
+      width: 100%;
+      height: auto;
+      border-radius: 16px;
+      filter: brightness(.94) contrast(.99);
+    }
+    figcaption {
+      max-width: 850px;
+      margin: 13px auto 0;
+      color: var(--muted);
+      font-size: .84rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    section { padding: 38px 0; border-top: 1px solid var(--line); }
+    h2 {
+      margin: 0 0 24px;
+      font-family: var(--serif);
+      font-size: 1.75rem;
+      font-weight: 500;
+      letter-spacing: -.015em;
+      line-height: 1.25;
+      text-align: center;
+    }
+    h3 { margin: 30px 0 10px; font-size: 1rem; font-weight: 650; }
+    p { margin: 0 0 16px; }
+    .abstract {
+      font-family: var(--serif);
+      font-size: 1.08rem;
+      line-height: 1.75;
+      text-align: justify;
+      text-wrap: pretty;
+    }
+    .lead { max-width: 760px; margin: 0 auto 34px; color: #c3c8cc; text-align: center; }
+
+    .method-text { max-width: 720px; margin: 28px auto 0; padding: 0; list-style: none; }
+    .method-text li { display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start; }
+    .method-text li + li { margin-top: 15px; }
+    .method-text .number { color: var(--muted); font: 500 .9rem/1.65 var(--serif); }
+    .method-text p { margin: 0; color: #c7ccd0; }
+    .method-text strong { color: var(--text); font-weight: 650; }
+
+    .results-table {
+      margin: 31px auto 0;
+      overflow-x: auto;
+      border-top: 1px solid #596168;
+      border-bottom: 1px solid #596168;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; font-variant-numeric: tabular-nums; text-align: right; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    thead th { color: var(--muted); font-size: .78rem; font-weight: 600; }
+    tbody th { font-weight: 500; }
+    tbody tr:last-child th,
+    tbody tr:last-child td { border-bottom: 0; }
+    td.best { background: var(--accent-soft); color: #ffad7d; font-weight: 700; }
+    .table-note { margin: 10px 0 0; color: var(--muted); font-size: .78rem; text-align: center; }
+
+    .full-results { margin-top: 30px; border: 1px solid var(--line); border-radius: 6px; background: #14171a; }
+    .full-results summary { padding: 15px 18px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+    .full-results summary:hover { background: #181c1f; }
+    .full-results[open] summary { border-bottom: 1px solid var(--line); }
+    .full-results-body { padding: 5px 18px 22px; }
+    .full-table-block { margin-top: 24px; }
+    .full-table-block h3 { margin: 0 0 6px; font-family: var(--serif); font-size: 1.1rem; font-weight: 500; }
+    .full-table-block > p { margin: 0 0 12px; color: var(--muted); font-size: .78rem; }
+    .full-table-scroll { max-height: 68vh; overflow: auto; border-top: 1px solid #596168; border-bottom: 1px solid #596168; }
+    .full-table-scroll table { min-width: 720px; font-size: .78rem; }
+    .full-table-scroll th,
+    .full-table-scroll td { padding: 8px 10px; }
+    .full-table-scroll thead th { position: sticky; top: 0; z-index: 3; background: #202428; }
+    .full-table-scroll tr > :first-child { position: sticky; left: 0; z-index: 2; background: #14171a; }
+    .full-table-scroll thead tr > :first-child { z-index: 4; background: #202428; }
+    .full-table-scroll .group-row th { background: #1b1f22; color: #dce0e3; font-weight: 650; }
+
+    .metrics { display: flex; justify-content: center; gap: 0; margin: 34px 0 38px; text-align: center; }
+    .metric { flex: 1; min-height: 88px; padding: 5px 28px; display: flex; flex-direction: column; align-items: center; }
+    .metric + .metric { border-left: 1px solid var(--line); }
+    .metric strong { display: block; font-family: var(--serif); font-size: 1.75rem; font-weight: 500; line-height: 1.1; }
+    .metric span { display: block; max-width: 190px; min-height: 2.8em; margin-top: 8px; color: var(--muted); font-size: .78rem; line-height: 1.4; }
+
+    .stacked-figure { margin-top: 42px; }
+    .stacked-figure.compound { width: min(460px, 100%); margin-inline: auto; }
+    .stacked-figure img { width: 100%; border: 1px solid var(--line); background: #fff; }
+
+    .discussion-text { max-width: 760px; margin: 0 auto; color: #cdd1d4; text-align: justify; hyphens: auto; }
+    .discussion-text p { margin: 0; }
+    .discussion-text p + p { margin-top: 18px; }
+
+    .citation-box { position: relative; margin-top: 24px; }
+    pre {
+      margin: 0;
+      padding: 20px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--soft);
+      color: #d8dde0;
+      font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      white-space: pre;
+    }
+    .copy {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid #454c52;
+      border-radius: 4px;
+      background: #22272b;
+      color: #e3e6e8;
+      cursor: pointer;
+      font: 600 .73rem var(--sans);
+    }
+
+    footer { padding: 30px 0 42px; border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; text-align: center; }
+
+    @media (max-width: 720px) {
+      .page { width: min(100% - 30px, var(--page)); }
+      .paper-header { padding: 48px 0 34px; }
+      h1 { font-size: 2rem; }
+      section { padding: 32px 0; }
+      h2 { font-size: 1.55rem; }
+      .abstract { font-size: 1.02rem; text-align: left; }
+      .metrics { gap: 22px; justify-content: space-between; }
+      .metric strong { font-size: 1.45rem; }
+      th, td { padding: 11px 10px; }
+    }
+
+    @media (max-width: 460px) {
+      .metrics { display: grid; grid-template-columns: 1fr; gap: 20px; }
+      .metric { min-height: 0; padding: 0; }
+      .metric + .metric { padding-top: 20px; border-top: 1px solid var(--line); border-left: 0; }
+      .metric span { margin-inline: auto; }
+    }
+
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <main id="top" class="page">
+    <header class="paper-header">
+      <h1>Sandwich-Residuals: Parameter-Efficient Test-time Adaptation of World Models</h1>
+      <p class="authors"><strong>Anonymous</strong></p>
+    </header>
+
+    <figure class="figure teaser">
+      <img src="assets/architecture.png" alt="Overview of closed-loop test-time adaptation and the Sandwich-Residuals architecture">
+      <figcaption><strong>Sandwich-Residuals.</strong> Lightweight residual modules correct the inputs and outputs of a frozen world-model predictor. Only the residuals are updated online.</figcaption>
+    </figure>
+
+    <section id="abstract">
+      <div class="reading">
+        <h2>Abstract</h2>
+        <p class="abstract">Latent world models enable planning by predicting the effects of actions in a learned representation space, but their predictions can become unreliable when test-time conditions differ from training. Sandwich-Residuals keeps the pretrained world model frozen and learns only small residual corrections around the predictor. The residuals are optimized online using self-supervised prediction error and require no rewards, labels, or source-domain data. Across 21 conditions on the AdaJEPA benchmark, the method achieves 1.3× the success rate of the frozen model while retaining 95% of the strongest AdaJEPA variant’s performance and adapting 97–99% fewer parameters. The same principle also transfers to a DINO-WM model for 3-D manipulation.</p>
+      </div>
+    </section>
+
+    <section id="method">
+      <h2>Method</h2>
+      <p class="lead">The pretrained encoders and predictor remain fixed. Small residual maps are placed at the predictor interfaces and trained from the five most recent observed transitions.</p>
+
+      <ol class="method-text">
+        <li><span class="number">1.</span><p><strong>Correct the inputs.</strong> Small residual maps adjust the visual, action, and proprioceptive embeddings before they enter the predictor.</p></li>
+        <li><span class="number">2.</span><p><strong>Keep the dynamics model frozen.</strong> The pretrained predictor processes the corrected embeddings without changing any of its weights.</p></li>
+        <li><span class="number">3.</span><p><strong>Correct the outputs.</strong> A second set of residuals adjusts the predicted latents before they are used for rollout and planning.</p></li>
+      </ol>
+    </section>
+
+    <section id="results">
+      <h2>Results</h2>
+      <p class="lead">Sandwich-Residuals recovers most of the benefit of internal-block adaptation while modifying far fewer parameters.</p>
+
+      <div class="metrics">
+        <div class="metric"><strong>65.0%</strong><span>mean success across 21 AdaJEPA conditions</span></div>
+        <div class="metric"><strong>97–99%</strong><span>fewer adapted parameters</span></div>
+        <div class="metric"><strong>1.9×</strong><span>frozen-model success under compound shifts</span></div>
+      </div>
+
+      <div class="results-table reading">
+        <table aria-label="Mean success rate comparison">
+          <thead>
+            <tr><th>Evaluation</th><th>Frozen</th><th>PredLast</th><th>PredFirst</th><th>Ours</th></tr>
+          </thead>
+          <tbody>
+            <tr><th>21 primary conditions</th><td>49.2</td><td>63.4</td><td><strong>68.2</strong></td><td class="best">65.0</td></tr>
+            <tr><th>7 compound shifts</th><td>34.5</td><td>57.8</td><td>65.2</td><td class="best">66.0</td></tr>
+            <tr><th>DINO-WM / OGBench-Cube</th><td>58.7</td><td>57.8</td><td>58.0</td><td class="best">60.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">Mean success rate (%). Compound results are averaged over the seven reported conditions.</p>
+
+      <details class="full-results reading">
+        <summary>View full result tables</summary>
+        <div class="full-results-body">
+          <div class="full-table-block">
+            <h3>Table I · AdaJEPA primary conditions</h3>
+            <p>Success rate (%), mean ± standard deviation over five seeds. pl: PredLast; pf: PredFirst. * indicates a shape unseen during training.</p>
+            <div class="full-table-scroll">
+              <table aria-label="Complete AdaJEPA primary-condition results">
+                <thead><tr><th>Condition</th><th>Frozen</th><th>pl</th><th>pf</th><th>Ours</th><th>Δ</th></tr></thead>
+                <tbody>
+                  <tr class="group-row"><th colspan="6">Medium Maze</th></tr>
+                  <tr><th>No shift</th><td>80.8 ± 8.9</td><td><strong>86.0 ± 5.8</strong></td><td>84.0 ± 5.7</td><td>81.2 ± 6.7</td><td>+0.4</td></tr>
+                  <tr><th>Damping 50×</th><td>46.4 ± 3.8</td><td>52.0 ± 4.0</td><td>59.2 ± 3.0</td><td><strong>66.0 ± 3.7</strong></td><td>+19.6</td></tr>
+                  <tr><th>Density 0.2×</th><td><strong>90.0 ± 4.5</strong></td><td>86.4 ± 6.2</td><td>88.0 ± 7.7</td><td>88.4 ± 5.7</td><td>−1.6</td></tr>
+                  <tr><th>Density 10×</th><td>38.0 ± 5.1</td><td>39.6 ± 6.1</td><td><strong>42.8 ± 4.6</strong></td><td>40.4 ± 3.0</td><td>+2.4</td></tr>
+                  <tr><th>Blur σ=2</th><td>83.2 ± 6.6</td><td>83.2 ± 6.4</td><td><strong>84.0 ± 4.7</strong></td><td>83.2 ± 7.7</td><td>+0.0</td></tr>
+                  <tr><th><em>Average</em></th><td>67.7</td><td>69.4</td><td>71.6</td><td><strong>71.8</strong></td><td>+4.2</td></tr>
+                  <tr class="group-row"><th colspan="6">Diverse Maze</th></tr>
+                  <tr><th>Unseen layouts</th><td>45.6 ± 9.1</td><td>53.6 ± 6.1</td><td>62.8 ± 8.2</td><td><strong>63.2 ± 11.0</strong></td><td>+17.6</td></tr>
+                  <tr class="group-row"><th colspan="6">PushObj</th></tr>
+                  <tr><th>T</th><td>50.4 ± 4.3</td><td>76.4 ± 3.0</td><td><strong>79.6 ± 5.2</strong></td><td>76.4 ± 6.5</td><td>+26.0</td></tr>
+                  <tr><th>L</th><td>47.6 ± 6.2</td><td>76.8 ± 3.0</td><td><strong>77.2 ± 2.3</strong></td><td>71.6 ± 7.3</td><td>+24.0</td></tr>
+                  <tr><th>Z</th><td>37.6 ± 8.9</td><td>72.8 ± 4.6</td><td><strong>79.2 ± 6.7</strong></td><td>70.4 ± 4.8</td><td>+32.8</td></tr>
+                  <tr><th>Plus</th><td>36.4 ± 5.5</td><td>72.0 ± 5.8</td><td><strong>76.8 ± 6.4</strong></td><td>70.4 ± 8.2</td><td>+34.0</td></tr>
+                  <tr><th>I*</th><td>24.8 ± 7.0</td><td><strong>46.0 ± 9.4</strong></td><td>43.2 ± 7.6</td><td>45.6 ± 8.9</td><td>+20.8</td></tr>
+                  <tr><th>Small T*</th><td>49.6 ± 4.6</td><td><strong>65.6 ± 9.0</strong></td><td>63.2 ± 8.8</td><td>62.4 ± 11.8</td><td>+12.8</td></tr>
+                  <tr><th>Square*</th><td>22.4 ± 7.1</td><td>40.0 ± 5.1</td><td><strong>44.4 ± 7.0</strong></td><td>39.2 ± 9.5</td><td>+16.8</td></tr>
+                  <tr><th><em>Average</em></th><td>38.4</td><td>64.2</td><td><strong>66.2</strong></td><td>62.3</td><td>+23.9</td></tr>
+                  <tr class="group-row"><th colspan="6">PushT</th></tr>
+                  <tr><th>No shift</th><td>62.0 ± 6.0</td><td>75.6 ± 3.6</td><td><strong>82.4 ± 2.6</strong></td><td>77.6 ± 5.5</td><td>+15.6</td></tr>
+                  <tr><th>Blur σ=2</th><td>50.4 ± 4.3</td><td>69.2 ± 5.8</td><td><strong>82.8 ± 5.6</strong></td><td>72.8 ± 4.1</td><td>+22.4</td></tr>
+                  <tr><th>S&amp;P noise 0.01</th><td>55.6 ± 4.1</td><td>70.4 ± 8.8</td><td><strong>83.2 ± 2.3</strong></td><td>72.0 ± 4.2</td><td>+16.4</td></tr>
+                  <tr><th>Brightness 0.9×</th><td>65.6 ± 7.1</td><td>74.8 ± 6.3</td><td><strong>82.0 ± 4.2</strong></td><td>73.6 ± 6.5</td><td>+8.0</td></tr>
+                  <tr><th>Red agent</th><td>50.0 ± 4.7</td><td>62.4 ± 6.1</td><td><strong>74.0 ± 4.9</strong></td><td>67.2 ± 3.3</td><td>+17.2</td></tr>
+                  <tr><th>Red block</th><td><strong>14.0 ± 4.2</strong></td><td>11.2 ± 4.1</td><td>10.0 ± 2.0</td><td>12.8 ± 1.8</td><td>−1.2</td></tr>
+                  <tr><th>Red anchor</th><td>29.6 ± 3.8</td><td>36.0 ± 5.7</td><td><strong>43.2 ± 8.2</strong></td><td>42.4 ± 3.3</td><td>+12.8</td></tr>
+                  <tr><th>Controller k<sub>v</sub> 2×</th><td>53.2 ± 5.4</td><td>80.8 ± 5.2</td><td><strong>91.2 ± 3.0</strong></td><td>88.4 ± 5.4</td><td>+35.2</td></tr>
+                  <tr><th><em>Average</em></th><td>47.5</td><td>60.0</td><td><strong>68.6</strong></td><td>63.4</td><td>+15.8</td></tr>
+                  <tr class="group-row"><th>All 21 conditions</th><td>49.2</td><td>63.4</td><td><strong>68.2</strong></td><td>65.0</td><td>+15.8</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="full-table-block">
+            <h3>Table II · Compound shifts</h3>
+            <p>Success rate (%), mean ± standard deviation over five seeds.</p>
+            <div class="full-table-scroll">
+              <table aria-label="Complete compound-shift results">
+                <thead><tr><th>Condition</th><th>Frozen</th><th>pl</th><th>pf</th><th>Ours</th><th>Δ</th></tr></thead>
+                <tbody>
+                  <tr><th>Maze: blur σ=2 + damping 50×</th><td>46.8 ± 7.8</td><td>54.0 ± 4.7</td><td>56.0 ± 4.0</td><td><strong>65.6 ± 6.2</strong></td><td>+18.8</td></tr>
+                  <tr><th>Maze: blur σ=2 + density 10×</th><td>38.8 ± 6.1</td><td>39.2 ± 3.6</td><td>37.2 ± 7.2</td><td><strong>40.8 ± 3.0</strong></td><td>+2.0</td></tr>
+                  <tr><th>PushT: blur σ=2 + controller 2×</th><td>40.4 ± 4.3</td><td>76.8 ± 3.3</td><td><strong>87.6 ± 2.6</strong></td><td><strong>87.6 ± 3.0</strong></td><td>+47.2</td></tr>
+                  <tr><th>PushT: red anchor + controller 2×</th><td>30.4 ± 4.3</td><td>42.4 ± 7.4</td><td><strong>53.2 ± 4.1</strong></td><td>51.2 ± 7.7</td><td>+20.8</td></tr>
+                  <tr><th>PushT: blur + red anchor + controller 2×</th><td>34.4 ± 8.6</td><td>41.2 ± 5.8</td><td><strong>68.8 ± 6.7</strong></td><td>59.6 ± 2.6</td><td>+25.2</td></tr>
+                  <tr><th>PushObj T: blur σ=2 + controller 2×</th><td>26.8 ± 3.0</td><td>84.8 ± 2.7</td><td>85.6 ± 3.3</td><td><strong>87.2 ± 5.0</strong></td><td>+60.4</td></tr>
+                  <tr><th>PushObj Square: blur σ=2 + controller 2×</th><td>23.6 ± 6.4</td><td>66.4 ± 8.6</td><td>68.0 ± 9.1</td><td><strong>70.0 ± 9.1</strong></td><td>+46.4</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="full-table-block">
+            <h3>Table III · Paired differences</h3>
+            <p>Ours minus each baseline in percentage points, mean ± standard error.</p>
+            <div class="full-table-scroll">
+              <table aria-label="Paired differences">
+                <thead><tr><th>Subset</th><th>− Frozen</th><th>− pl</th><th>− pf</th></tr></thead>
+                <tbody>
+                  <tr><th>All 21 conditions</th><td>+15.8 ± 1.2</td><td>+1.6 ± 0.7</td><td>−3.2 ± 0.8</td></tr>
+                  <tr><th>Medium Maze</th><td>+4.2 ± 1.9</td><td>+2.4 ± 1.6</td><td>+0.2 ± 1.0</td></tr>
+                  <tr><th>Diverse Maze</th><td>+17.6 ± 1.2</td><td>+9.6 ± 2.5</td><td>+0.4 ± 4.3</td></tr>
+                  <tr><th>PushObj</th><td>+23.9 ± 1.7</td><td>−1.9 ± 0.9</td><td>−3.9 ± 1.5</td></tr>
+                  <tr><th>PushT</th><td>+15.8 ± 1.8</td><td>+3.3 ± 0.9</td><td>−5.2 ± 1.2</td></tr>
+                  <tr><th>Compound (7)</th><td>+31.5 ± 3.4</td><td>+8.2 ± 1.3</td><td>+0.8 ± 1.4</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="full-table-block">
+            <h3>Table IV · OGBench-Cube with DINO-WM</h3>
+            <p>Success rate (%), mean ± standard deviation over three seeds.</p>
+            <div class="full-table-scroll">
+              <table aria-label="DINO-WM OGBench-Cube results">
+                <thead><tr><th>Condition</th><th>Frozen</th><th>pl</th><th>pf</th><th>Ours</th></tr></thead>
+                <tbody>
+                  <tr><th>No shift</th><td>62.7 ± 3.1</td><td>60.7 ± 3.1</td><td><strong>64.0 ± 2.0</strong></td><td>60.7 ± 5.0</td></tr>
+                  <tr><th>Light 0.3</th><td>58.7 ± 4.2</td><td>60.0 ± 4.0</td><td>58.7 ± 4.6</td><td><strong>61.3 ± 5.0</strong></td></tr>
+                  <tr><th>Camera 10°</th><td>54.0 ± 5.3</td><td>51.3 ± 5.0</td><td>52.0 ± 5.3</td><td><strong>56.0 ± 2.0</strong></td></tr>
+                  <tr><th>Arm gain 0.5×</th><td>59.3 ± 5.8</td><td>59.3 ± 5.8</td><td>57.3 ± 3.1</td><td><strong>62.0 ± 2.0</strong></td></tr>
+                  <tr><th><em>Average</em></th><td>58.7</td><td>57.8</td><td>58.0</td><td><strong>60.0</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="full-table-block">
+            <h3>Table V · Residual-pathway ablation</h3>
+            <p>Success rate (%), mean ± standard deviation over five seeds. Parentheses show change from the full model.</p>
+            <div class="full-table-scroll">
+              <table aria-label="Residual-pathway ablation">
+                <thead><tr><th>Configuration</th><th>Medium Maze</th><th>PushT</th></tr></thead>
+                <tbody>
+                  <tr><th>Full</th><td><strong>65.6 ± 6.2</strong></td><td><strong>87.6 ± 3.0</strong></td></tr>
+                  <tr><th>Without action residual</th><td>63.6 ± 3.8 (−2.0)</td><td>77.6 ± 3.0 (−10.0)</td></tr>
+                  <tr><th>Without output residuals</th><td>56.4 ± 2.2 (−9.2)</td><td>72.0 ± 5.1 (−15.6)</td></tr>
+                  <tr><th>Without input residuals</th><td>64.4 ± 1.7 (−1.2)</td><td>71.2 ± 1.8 (−16.4)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <figure class="figure stacked-figure compound">
+        <img src="assets/compound_trajectories.png" alt="Compound-shift trajectories for Frozen, PredLast, PredFirst, and Sandwich-Residuals" loading="lazy">
+        <figcaption><strong>Compound shifts.</strong> In these four representative episodes, Sandwich-Residuals reaches the goal in every environment; the frozen model fails in all four.</figcaption>
+      </figure>
+    </section>
+
+    <section id="discussion">
+      <h2>Discussion and Conclusion</h2>
+      <div class="discussion-text">
+        <p>The experiments suggest that test-time mismatch does not always require changing the internal dynamics model. When the pretrained representation and transition structure remain useful, lightweight interface corrections can recalibrate the model for planning without explicitly identifying the changed system.</p>
+        <p>The useful correction pathway depends on the shift. Output-side correction is nearly sufficient in Medium Maze, whereas PushT benefits from jointly correcting the predictor inputs and outputs, especially the action pathway. Strong appearance changes remain more difficult because information distorted or lost inside the frozen visual encoder cannot always be recovered downstream.</p>
+        <p>The current evaluation is limited to simulation and approximately stationary within-episode shifts, and reducing the number of trainable parameters does not proportionally reduce gradient-computation cost. Even with these limitations, Sandwich-Residuals recovers substantial planning performance while updating only a small fraction of the parameters used by internal-block adaptation, showing that effective test-time adaptation need not modify the pretrained world model itself.</p>
+      </div>
+    </section>
+
+    <section id="citation">
+      <div class="reading">
+        <h2>Citation</h2>
+        <div class="citation-box">
+          <button class="copy" type="button" data-copy>Copy</button>
+          <pre id="bibtex">@misc{anonymous2026sandwich,
+  title  = {Sandwich-Residuals: Parameter-Efficient
+            Test-time Adaptation of World Models},
+  author = {Anonymous},
+  year   = {2026}
+}</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="page">Sandwich-Residuals · Anonymous · 2026</div></footer>
+
+  <script>
+    (() => {
+      const bibtex = document.querySelector('#bibtex').textContent.trim();
+      const buttons = document.querySelectorAll('[data-copy]');
+      buttons.forEach((button) => {
+        button.addEventListener('click', async () => {
+          const original = button.textContent;
+          try {
+            await navigator.clipboard.writeText(bibtex);
+            button.textContent = 'Copied';
+          } catch {
+            const range = document.createRange();
+            range.selectNodeContents(document.querySelector('#bibtex'));
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            button.textContent = 'Selected';
+          }
+          window.setTimeout(() => { button.textContent = original; }, 1500);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
