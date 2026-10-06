@@ -99,36 +99,37 @@
     .diagram { width: min(100%, 820px); margin: 8px auto 0; }
     .diagram img { width: 100%; height: auto; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: #fbfbfc; }
 
-    /* method steps ---------------------------------------------------------- */
-    .method-panel {
-      display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr);
-      gap: 28px; max-width: 790px; margin: 28px auto 0; padding: 24px 26px;
+    /* method: adaptation loop ---------------------------------------------- */
+    .method-figure {
+      max-width: 860px; margin: 0 auto; padding: 20px 22px 18px;
       border: 1px solid var(--line); border-radius: 14px; background: var(--surface-1);
     }
-    .method-panel h3 { margin: 0 0 14px; font-family: var(--serif); font-size: 1.05rem; font-weight: 500; }
-    .method-specs { padding-left: 26px; border-left: 1px solid var(--line); }
-    .steps { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
-    .steps li {
-      position: relative; display: grid; grid-template-columns: 34px minmax(0, 1fr);
-      gap: 12px; padding: 0 0 16px;
+    .method-figure figcaption { margin-top: 22px; }
+    .method-sub { margin: 0 0 12px; font-family: var(--serif); font-size: 1.05rem; font-weight: 500; }
+    .loop { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 26px; margin: 0; padding: 0; list-style: none; }
+    .loop-step { position: relative; display: flex; flex-direction: column; padding: 12px 13px 11px; border: 1px solid #3d454c; border-radius: 10px; background: #1d2226; }
+    .loop-step:not(:first-child)::before {
+      content: "→"; position: absolute; top: 50%; left: -21px; transform: translateY(-50%);
+      color: #8d969d; font-size: 1rem; line-height: 1;
     }
-    .steps li + li { padding-top: 16px; border-top: 1px solid var(--line); }
-    .steps li:last-child { padding-bottom: 0; }
-    .steps .number {
-      display: grid; place-items: center; width: 30px; height: 30px; margin-top: 1px;
-      border: 1px solid #62402d; border-radius: 50%; background: var(--accent-soft);
-      color: #ffad7d; font: 700 .68rem var(--sans); letter-spacing: .04em;
+    .loop-step h4 { margin: 0 0 4px; font-size: .9rem; font-weight: 650; }
+    .loop-step p { margin: 0 0 9px; color: #c7ccd0; font-size: .8rem; line-height: 1.45; }
+    .loop-spec { margin-top: auto; padding-top: 8px; border-top: 1px solid var(--line); color: var(--muted); font-size: .74rem; line-height: 1.4; }
+    .loop-step.adapt { border-color: var(--accent); background: var(--accent-soft); }
+    .loop-step.adapt h4 { color: #ffb488; }
+    .loop-step.adapt .loop-spec { border-top-color: #4a3324; color: #c99a7c; }
+    .loop-return {
+      position: relative; height: 20px; margin: 6px 12.5% 0;
+      border: 1.5px dashed #62402d; border-top: 0; border-radius: 0 0 12px 12px;
     }
-    .steps h4 { margin: 0 0 4px; font-size: .94rem; font-weight: 650; }
-    .steps p { margin: 0; color: #c7ccd0; font-size: .85rem; line-height: 1.5; }
-    .steps .note { margin-top: 5px; color: var(--muted); font-size: .78rem; }
-
-    .protocol { display: grid; margin: 0; }
-    .protocol div { padding: 9px 0 10px; border-top: 1px solid var(--line); }
-    .protocol div:first-child { padding-top: 0; border-top: 0; }
-    .protocol dt { margin: 0; color: var(--muted); font-size: .68rem; font-weight: 650; letter-spacing: .07em; text-transform: uppercase; }
-    .protocol dd { margin: 3px 0 0; font-size: .83rem; line-height: 1.42; }
-    .protocol .dim { color: var(--muted); }
+    .loop-return::before {  /* arrowhead pointing back up into "Plan" */
+      content: ""; position: absolute; top: -7px; left: -6.5px;
+      border: 5.5px solid transparent; border-bottom: 7px solid #ef8a50; border-top: 0;
+    }
+    .loop-return span {
+      position: absolute; left: 50%; bottom: -.72em; transform: translateX(-50%);
+      padding: 0 10px; background: var(--surface-1); color: #ffad7d; font-size: .76rem; white-space: nowrap;
+    }
 
     /* metrics --------------------------------------------------------------- */
     .metrics { display: flex; justify-content: center; max-width: 760px; margin: 24px auto 32px; text-align: center; }
@@ -294,10 +295,6 @@
     footer { padding: 30px 0 46px; border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; text-align: center; }
 
     @media (max-width: 800px) {
-      .method-panel { grid-template-columns: 1fr; gap: 22px; }
-      .method-specs { padding: 20px 0 0; border-top: 1px solid var(--line); border-left: 0; }
-      .protocol { grid-template-columns: repeat(2, 1fr); column-gap: 22px; }
-      .protocol div:nth-child(2) { padding-top: 0; border-top: 0; }
       .video-grid { grid-template-columns: repeat(2, 1fr); }
       .chart-pair { grid-template-columns: 1fr; }
     }
@@ -327,13 +324,15 @@
       .results-overview .summary-table th:first-child { width: 36%; }
       .results-overview .summary-table th:not(:first-child) { width: 16%; }
       .results-overview .summary-table thead th { font-size: .63rem; }
-      .method-panel { padding: 20px; }
+      .method-figure { padding: 16px 14px 14px; }
+      .loop { grid-template-columns: 1fr; gap: 24px; }
+      .loop-step:not(:first-child)::before { top: -20px; left: 50%; transform: translateX(-50%) rotate(90deg); }
+      .loop-return { height: auto; margin: 14px 0 0; border: 0; text-align: center; }
+      .loop-return::before { display: none; }
+      .loop-return span { position: static; transform: none; white-space: normal; }
+      .loop-return span::before { content: "↺ "; }
       .full-results-body { padding-inline: 12px; }
       .table-scroll-hint { display: block; }
-    }
-    @media (max-width: 520px) {
-      .protocol { grid-template-columns: 1fr; }
-      .protocol div:nth-child(2) { padding-top: 9px; border-top: 1px solid var(--line); }
     }
     @media (max-width: 350px) {
       .video-grid { grid-template-columns: 1fr; }
@@ -383,51 +382,36 @@
 
     <section id="method">
       <h2>Method</h2>
-      <p class="lead">The pretrained encoders and predictor stay fixed. Small residual maps sit at the predictor's interfaces and are trained from the five most recent observed transitions.</p>
+      <p class="lead">The pretrained encoders and predictor stay frozen. Four small residual maps around the predictor (99,520 parameters) are the only weights trained, inside the planning loop, from the model's own prediction error.</p>
 
-      <div class="method-panel">
-        <div class="method-flow">
-          <h3>One correction on either side</h3>
-          <ol class="steps">
-            <li>
-              <span class="number">01</span>
-              <div>
-                <h4>Correct the inputs</h4>
-                <p>Residual maps adjust the visual and action embeddings before they reach the predictor.</p>
-                <p class="note">When available, the action correction is conditioned on proprioception; the proprioceptive embedding itself stays unchanged.</p>
-              </div>
-            </li>
-            <li>
-              <span class="number">02</span>
-              <div>
-                <h4>Keep the dynamics frozen</h4>
-                <p>The pretrained predictor rolls the corrected embeddings forward without changing any of its weights.</p>
-                <p class="note">The representation and transition structure learned during pretraining are preserved.</p>
-              </div>
-            </li>
-            <li>
-              <span class="number">03</span>
-              <div>
-                <h4>Correct the outputs</h4>
-                <p>A second pair of residuals adjusts predicted latents before rollout and goal comparison.</p>
-                <p class="note">Prediction, adaptation and planning therefore share one corrected space.</p>
-              </div>
-            </li>
-          </ol>
-        </div>
+      <figure class="method-figure">
+        <p class="method-sub">One adaptation step per replanning cycle</p>
+        <ol class="loop">
+          <li class="loop-step">
+            <h4>Plan</h4>
+            <p>CEM searches five action blocks in the corrected latent space.</p>
+            <span class="loop-spec">200 candidates, 30 elites, 10 iterations</span>
+          </li>
+          <li class="loop-step">
+            <h4>Execute</h4>
+            <p>Only the first block runs; the rest warm-start the next plan.</p>
+            <span class="loop-spec">5 simulation steps per block</span>
+          </li>
+          <li class="loop-step">
+            <h4>Observe</h4>
+            <p>The new frame is encoded and the transition joins the buffer.</p>
+            <span class="loop-spec">5 most recent transitions kept</span>
+          </li>
+          <li class="loop-step adapt">
+            <h4>Update residuals</h4>
+            <p>One Adam step on the latent prediction error, target under stop-gradient.</p>
+            <span class="loop-spec">lr 10⁻² linear, 5×10⁻⁴ MLP</span>
+          </li>
+        </ol>
+        <div class="loop-return"><span>repeat, up to 20 replans (10 for DINO-WM)</span></div>
 
-        <aside class="method-specs">
-          <h3>Adaptation protocol</h3>
-          <dl class="protocol">
-            <div><dt>Adapted parameters</dt><dd>99,520 <span class="dim">· 99,310 for DINO-WM</span></dd></div>
-            <div><dt>Signal</dt><dd>latent prediction error <span class="dim">· stop-gradient target</span></dd></div>
-            <div><dt>Update</dt><dd>one Adam step per replan <span class="dim">· 5-transition buffer</span></dd></div>
-            <div><dt>Planner</dt><dd>CEM <span class="dim">· 200 candidates · 30 elites · 10 iterations</span></dd></div>
-            <div><dt>Episode</dt><dd>up to 20 replans <span class="dim">· 10 for DINO-WM · first action block executed</span></dd></div>
-            <div><dt>Reset</dt><dd>every episode <span class="dim">· following AdaJEPA</span></dd></div>
-          </dl>
-        </aside>
-      </div>
+        <figcaption>The residuals start as an identity map and are reset at the start of every episode, so each episode begins from the unmodified pretrained model. DINO-WM has no proprioception, so the proprioceptive conditioning and the proprioceptive output residual drop out (99,310 parameters).</figcaption>
+      </figure>
 
       <div class="callout">
         <strong>What this replaces.</strong> AdaJEPA adapts a predictor block plus the encoder's projection head — 9.93M parameters in the maze models and 3.66M in the pushing models — and requires choosing <em>which</em> block to adapt. Sandwich-Residuals removes that choice: one fixed interface configuration, 1.0–2.7% of the parameters, no pretrained weight modified.
