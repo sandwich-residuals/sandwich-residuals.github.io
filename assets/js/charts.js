@@ -82,7 +82,10 @@
         const x = gx + i * (bw + gap), h = ph * v / max;
         const p = el("path", { d: barPath(x, y(v), bw, h, 4, "up"), fill: ARM_COLOR[arms[i]], class: "viz-bar" }, svg);
         hoverable(p, `<b>${g.label}</b><br>${ARM_LABEL[arms[i]]}: <b>${v.toFixed(1)}%</b>${g.note ? `<br><span class="dim">${g.note}</span>` : ""}`);
-        if (spec.valueLabels) text(svg, x + bw / 2, y(v) - 6, v.toFixed(1), { "text-anchor": "middle", "font-size": spec.valueSize || 10.5, fill: MUTED });
+        // "ours" mode labels only the last bar, lifted clear of any taller neighbour.
+        const top = spec.valueLabels === "ours" ? Math.max(...g.values.filter((u) => u != null)) : v;
+        if (spec.valueLabels === true || (spec.valueLabels === "ours" && i === n - 1))
+          text(svg, x + bw / 2, y(top) - 6, v.toFixed(1), { "text-anchor": "middle", "font-size": spec.valueSize || 10.5, fill: INK, "font-weight": 600 });
       });
       const lines = String(g.label).split("\n");
       lines.forEach((ln, li) => text(svg, m.l + gi * gw + gw / 2, H - m.b + 18 + li * 14, ln, { "text-anchor": "middle", fill: INK, "font-size": spec.labelSize || 12.5 }));
@@ -112,7 +115,7 @@
         const yy = top + i * step, w = pw * v / max;
         const p = el("path", { d: barPath(m.l, yy, Math.max(w, 2), barH, 3, "right"), fill: ARM_COLOR[arms[i]], class: "viz-bar" }, svg);
         hoverable(p, `<b>${r.title || r.label}</b><br>${ARM_LABEL[arms[i]]}: <b>${v.toFixed(1)}%</b>`);
-        if (i === n - 1) text(svg, m.l + w + 6, yy + barH, v.toFixed(1), { "font-size": 10, fill: ARM_COLOR[arms[i]], "font-weight": 600 });
+        if (i === n - 1) text(svg, m.l + w + 6, yy + barH, v.toFixed(1), { "font-size": 10, fill: INK, "font-weight": 600 });
       });
     });
     el("line", { x1: m.l, x2: m.l, y1: m.t, y2: H - m.b, stroke: "var(--axis)", "stroke-width": 1 }, svg);
@@ -169,7 +172,7 @@
       const delta = b.value - full;
       hoverable(p, `<b>${spec.env}</b><br>${b.name}: <b>${b.value.toFixed(1)}%</b>${isFull ? "" : `<br><span class="dim">${delta > 0 ? "+" : "\u2212"}${Math.abs(delta).toFixed(1)} vs full</span>`}`);
       text(svg, m.l - 10, yy + barH - 1, b.name, { "text-anchor": "end", "font-size": 11.5, fill: isFrozen || isFull ? INK : MUTED });
-      text(svg, m.l + w + 6, yy + barH - 1, b.value.toFixed(1), { "font-size": 10.5, fill: color, "font-weight": 600 });
+      text(svg, m.l + w + 6, yy + barH - 1, b.value.toFixed(1), { "font-size": 10.5, fill: isFrozen || isFull ? INK : MUTED, "font-weight": isFull ? 600 : 500 });
     });
     el("line", { x1: m.l, x2: m.l, y1: m.t, y2: H - m.b, stroke: "var(--axis)", "stroke-width": 1 }, svg);
   }
@@ -181,7 +184,7 @@
 
   groupedBars(byId("chart-aggregate"), {
     arms, width: 400, height: 264, margins: { t: 10, r: 5, b: 48, l: 28 },
-    labelLines: 2, labelSize: 10, groupFill: 0.72, barGap: 1.5,
+    labelLines: 2, labelSize: 11.5, groupFill: 0.72, barGap: 1.5,
     groups: D.aggregate.map((g, i) => ({
       label: ["Medium\nMaze", "Diverse\nMaze", "PushObj", "PushT", "Compound", "Cube"][i],
       values: g.values, note: `mean over ${g.n_cond} condition${g.n_cond > 1 ? "s" : ""}`,
@@ -189,8 +192,8 @@
   });
 
   groupedBarsH(byId("chart-compound"), {
-    arms, width: 400, barH: 6, step: 8, rowH: 34, labelSize: 10,
-    margins: { t: 6, r: 20, b: 20, l: 112 }, ticks: [0, 50, 100],
+    arms, width: 400, barH: 6, step: 8, rowH: 36, labelSize: 11.5,
+    margins: { t: 6, r: 30, b: 20, l: 128 }, ticks: [0, 50, 100],
     rows: D.compound.map((r, i) => ({
       label: ["Maze · damping", "Maze · density", "PushT · blur + kᵥ", "PushT · anchor + kᵥ", "PushT · blur + anchor", "PushObj T", "PushObj square"][i],
       title: r.short, values: r.cells.map((c) => c.m),
@@ -203,9 +206,9 @@
       label: ["All primary (21)", "Medium Maze", "Diverse Maze", "PushObj", "PushT", "Compound (7)", "Cube"][i],
       title: r.label,
     })),
-    width: 400, barH: 6, step: 10, rowH: 34,
+    width: 400, barH: 6, step: 11, rowH: 42,
     labelSize: 11.5, valueSize: 11,
-    margins: { t: 6, r: 24, b: 20, l: 102 }, tickStep: 10,
+    margins: { t: 6, r: 36, b: 20, l: 108 }, tickStep: 10,
   });
 
   D.ablation.forEach((panel, i) => {
@@ -217,7 +220,7 @@
   });
 
   groupedBars(byId("chart-cube"), {
-    arms, width: 460, height: 250, valueLabels: true, valueSize: 8,
+    arms, width: 460, height: 250, valueLabels: "ours", valueSize: 9.5,
     margins: { t: 12, r: 6, b: 52, l: 32 }, labelLines: 2, labelSize: 12,
     groupFill: 0.78, barGap: 1.5, ticks: [0, 20, 40, 60, 80], max: 80,
     groups: D.cube.map((r, i) => ({
